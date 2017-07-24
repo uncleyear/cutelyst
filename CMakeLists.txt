@@ -154,7 +154,9 @@ install(EXPORT CutelystQt5Targets
 add_subdirectory(Cutelyst)
 
 if(UNIX AND NOT APPLE)
-    set(LINUX TRUE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(LINUX TRUE)
+    endif()
 endif()
 
 if (LINUX)

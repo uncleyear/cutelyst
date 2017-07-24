@@ -1,5 +1,11 @@
+set(CS_INCDIR_PFX "ClearSilver")
+
+find_path(CLEARSILVER_SYSTEM_INCLUDE_DIR ${CS_INCDIR_PFX}/ClearSilver.h)
+find_path(CLEARSILVER_UTIL_INCLUDE_DIR "util/neo_misc.h" PATH_SUFFIXES ${CS_INCDIR_PFX})
+
 include_directories(
-    /usr/include/ClearSilver
+    ${CLEARSILVER_SYSTEM_INCLUDE_DIR}
+    ${CLEARSILVER_UTIL_INCLUDE_DIR}
 )
 
 set(clearsilver_plugin_SRC

@@ -8,6 +8,10 @@ if (PkgConfig_FOUND)
     endif (MEMCACHED_FOUND)
 endif (PkgConfig_FOUND)
 
+if (MEMCACHED_FOUND)
+    link_directories ( ${MEMCACHED_LIBRARY_DIRS} )
+endif (MEMCACHED_FOUND)
+
 set(plugin_session_SRC
     ${sessionstorememcached_SRC}
     sessionstorefile.cpp
