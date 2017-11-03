@@ -63,6 +63,12 @@ class CUTELYST_LIBRARY Context : public QObject
     Q_PROPERTY(QVariantMap config READ config)
     Q_PROPERTY(bool state READ state)
 public:
+    /*!
+     * Constructs a new DUMMY Context object that is child of Application
+     * This currently is experimental to allow non network events (such as database notification)
+     * to be able to use our infrastructure
+     */
+    Context(Application *app);
     virtual ~Context();
 
     /*!
@@ -170,10 +176,9 @@ public:
     View *view() const;
 
     /**
-     * Returns the view set to be used
-     * for rendering this request, if one
-     * is set by setView() or 0 if none was set
+     * Returns the view with name name
      */
+    // TODO find a new name for the above method
     View *view(const QString &name) const;
 
     /**
@@ -411,7 +416,7 @@ public:
                 return p;
             }
         }
-        return 0;
+        return nullptr;
     }
 
     /**

@@ -180,7 +180,8 @@ DispatchType::MatchType DispatchTypeChained::match(Context *c, const QString &pa
     QStringList decodedArgs;
     const QStringList parts = ret.parts;
     for (const QString &arg : parts) {
-        decodedArgs.append(QUrl::fromPercentEncoding(arg.toLatin1()));
+        QString aux = arg;
+        decodedArgs.append(Utils::decodePercentEncoding(&aux));
     }
 
     ActionChain *action = new ActionChain(chain, c);
@@ -328,7 +329,7 @@ Action *DispatchTypeChained::expandAction(Context *c, Action *action) const
 
     // The action must be chained to something
     if (!action->attributes().contains(QStringLiteral("Chained"))) {
-        return 0;
+        return nullptr;
     }
 
     ActionList chain;

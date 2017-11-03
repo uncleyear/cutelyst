@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Daniel Nicoletti <dantti12@gmail.com>
+ * Copyright (C) 2015-2017 Daniel Nicoletti <dantti12@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -27,6 +27,12 @@
 
 using namespace Cutelyst;
 
+/*!
+ * \class Cutelyst::ViewJson viewjson.h Cutelyst/Plugins/JSON/viewjson.h
+ * \brief JSON view for your data
+ *
+ * Cutelyst::ViewJSON is a Cutelyst View handler that returns stash data in JSON format.
+ */
 ViewJson::ViewJson(QObject *parent, const QString &name) : View(parent, name)
   , d_ptr(new ViewJsonPrivate)
 {
@@ -69,25 +75,52 @@ ViewJson::ExposeMode ViewJson::exposeStashMode() const
     return d->exposeMode;
 }
 
-void ViewJson::setExposeStashString(const QString &key)
+void ViewJson::setExposeStash(const QString &key)
 {
     Q_D(ViewJson);
     d->exposeMode = ViewJson::String;
     d->exposeKey = key;
 }
 
-void ViewJson::setExposeStashStringList(const QStringList &keys)
+void ViewJson::setExposeStash(const QStringList &keys)
 {
     Q_D(ViewJson);
     d->exposeMode = ViewJson::StringList;
     d->exposeKeys = keys;
 }
 
-void ViewJson::setExposeStashRegularExpression(const QRegularExpression &re)
+void ViewJson::setExposeStash(const QRegularExpression &re)
 {
     Q_D(ViewJson);
     d->exposeMode = ViewJson::RegularExpression;
     d->exposeRE = re;
+}
+
+void ViewJson::setXJsonHeader(bool enable)
+{
+    Q_D(ViewJson);
+    d->xJsonHeader = enable;
+}
+
+bool ViewJson::xJsonHeader() const
+{
+    Q_D(const ViewJson);
+    return d->xJsonHeader;
+}
+
+void ViewJson::setExposeStashString(const QString &key)
+{
+    setExposeStash(key);
+}
+
+void ViewJson::setExposeStashStringList(const QStringList &keys)
+{
+    setExposeStash(keys);
+}
+
+void ViewJson::setExposeStashRegularExpression(const QRegularExpression &re)
+{
+    setExposeStash(re);
 }
 
 QByteArray ViewJson::render(Context *c) const
@@ -143,7 +176,12 @@ QByteArray ViewJson::render(Context *c) const
     }
     }
 
-    c->response()->setContentType(QStringLiteral("application/json"));
+    Response *res = c->response();
+    if (d->xJsonHeader && c->request()->headers().contains(QStringLiteral("X_PROTOTYPE_VERSION"))) {
+        res->setHeader(QStringLiteral("X_JSON"), QStringLiteral("eval(\"(\"+this.transport.responseText+\")\")"));
+    }
+
+    res->setContentType(QStringLiteral("application/json"));
 
     return QJsonDocument(obj).toJson(d->format);
 }

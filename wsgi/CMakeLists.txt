@@ -51,7 +51,7 @@ add_library(CutelystQt5::WSGI ALIAS cutelyst_wsgi_qt5)
 set_property(TARGET cutelyst_wsgi_qt5 PROPERTY EXPORT_NAME WSGI)
 
 set_target_properties(cutelyst_wsgi_qt5 PROPERTIES
-    VERSION ${CUTELYST_VERSION}
+    VERSION ${PROJECT_VERSION}
     SOVERSION ${CUTELYST_API_LEVEL}
 )
 
@@ -88,6 +88,12 @@ target_link_libraries(cutelyst-wsgi
     cutelyst_wsgi_qt5
 #    eventdispatcher_epoll
 )
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CutelystQt5WSGI.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CutelystQt5WSGI.pc
+    @ONLY
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CutelystQt5WSGI.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 if (JEMALLOC_FOUND)
     target_link_libraries(cutelyst-wsgi ${JEMALLOC_LIBRARIES})

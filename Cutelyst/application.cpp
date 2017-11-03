@@ -41,6 +41,7 @@
 #include <QtCore/QTranslator>
 
 Q_LOGGING_CATEGORY(CUTELYST_DISPATCHER, "cutelyst.dispatcher")
+Q_LOGGING_CATEGORY(CUTELYST_DISPATCHER_PATH, "cutelyst.dispatcher.path")
 Q_LOGGING_CATEGORY(CUTELYST_DISPATCHER_CHAINED, "cutelyst.dispatcher.chained")
 Q_LOGGING_CATEGORY(CUTELYST_CONTROLLER, "cutelyst.controller")
 Q_LOGGING_CATEGORY(CUTELYST_CORE, "cutelyst.core")
@@ -146,36 +147,19 @@ Component *Application::createComponentPlugin(const QString &name, QObject *pare
         if (factory) {
             return factory->createComponent(parent);
         } else {
-            return 0;
+            return nullptr;
         }
     }
 
-    QDir pluginsDir(QLatin1String(CUTELYST_PLUGINS_DIR));
-    QPluginLoader loader;
-    Component *component = nullptr;
-    ComponentFactory *factory = nullptr;
-    const auto plugins = pluginsDir.entryList(QDir::Files);
-    for (const QString &fileName : plugins) {
-        loader.setFileName(pluginsDir.absoluteFilePath(fileName));
-        const QJsonObject json = loader.metaData()[QLatin1String("MetaData")].toObject();
-        if (json[QLatin1String("name")].toString() == name) {
-            QObject *plugin = loader.instance();
-            if (plugin) {
-                factory = qobject_cast<ComponentFactory *>(plugin);
-                if (!factory) {
-                    qCCritical(CUTELYST_CORE) << "Could not create a factory for" << loader.fileName();
-                } else {
-                    component = factory->createComponent(parent);
-                }
-                break;
-            } else {
-                qCCritical(CUTELYST_CORE) << "Could not load plugin" << loader.fileName() << loader.errorString();
-            }
+    const QByteArrayList dirs = QByteArrayList{ QByteArrayLiteral(CUTELYST_PLUGINS_DIR) } + qgetenv("CUTELYST_PLUGINS_DIR").split(';');
+    for (const QByteArray &dir : dirs) {
+        Component *component = d->createComponentPlugin(name, parent, QString::fromLocal8Bit(dir));
+        if (component) {
+            return component;
         }
     }
-    d->factories.insert(name, factory);
 
-    return component;
+    return nullptr;
 }
 
 const char *Application::cutelystVersion()
@@ -647,6 +631,40 @@ void Cutelyst::ApplicationPrivate::logRequestUploads(const QVector<Cutelyst::Upl
                                                        QStringLiteral("Size"),
                                                    },
                                                    QStringLiteral("File Uploads are:")).constData();
+}
+
+Component *ApplicationPrivate::createComponentPlugin(const QString &name, QObject *parent, const QString &directory)
+{
+    Component *component = nullptr;
+
+    QDir pluginsDir(directory);
+    QPluginLoader loader;
+    ComponentFactory *factory = nullptr;
+    const auto plugins = pluginsDir.entryList(QDir::Files);
+    for (const QString &fileName : plugins) {
+        loader.setFileName(pluginsDir.absoluteFilePath(fileName));
+        const QJsonObject json = loader.metaData()[QLatin1String("MetaData")].toObject();
+        if (json[QLatin1String("name")].toString() == name) {
+            QObject *plugin = loader.instance();
+            if (plugin) {
+                factory = qobject_cast<ComponentFactory *>(plugin);
+                if (!factory) {
+                    qCCritical(CUTELYST_CORE) << "Could not create a factory for" << loader.fileName();
+                } else {
+                    component = factory->createComponent(parent);
+                }
+                break;
+            } else {
+                qCCritical(CUTELYST_CORE) << "Could not load plugin" << loader.fileName() << loader.errorString();
+            }
+        }
+    }
+
+    if (factory) {
+        factories.insert(name, factory);
+    }
+
+    return component;
 }
 
 #include "moc_application.cpp"

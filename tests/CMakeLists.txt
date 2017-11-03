@@ -41,12 +41,18 @@ cutelyst_templates_unit_tests(
     testresponse
     testdispatcherpath
     testdispatcherchained
+    testactionrest
+    testactionrenderview
 )
 
 cute_test(testvalidator CutelystQt5::Utils::Validator "" "")
 
 if (NOT CMAKE_GENERATOR MATCHES "Visual Studio" AND NOT CMAKE_GENERATOR MATCHES "Ninja")
     cute_test(testauthentication CutelystQt5::Authentication CutelystQt5::Session "")
+    cute_test(testactionroleacl CutelystQt5::Authentication CutelystQt5::Session "")
 endif()
 
-cute_test(testpbkdf2 CutelystQt5::Authentication CutelystQt5::Session "")
+cute_test(testpbkdf2 CutelystQt5::Authentication "" "")
+cute_test(testpagination CutelystQt5::Utils::Pagination "" "")
+cute_test(testviewjson CutelystQt5::View::JSON "" "")
+cute_test(teststatusmessage CutelystQt5::StatusMessage CutelystQt5::Session "")
